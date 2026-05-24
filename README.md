@@ -59,14 +59,14 @@ function getUploadConfig() {
 ### Step 4：測試你的程式碼
 
 ```bash
-# 執行快速測試（看基本輸出）
+# 執行快速測試（同學自行練習）
 npm start
 
-# 執行完整 Jest 測試（看通過/失敗）
+# 執行完整 Jest 測試（繳交作業前需整體通過）
 npm test
 ```
 
-（這個部分的詳細可參照下方 **測試與驗證** 的說明）
+（這個部分的詳細可參照下方 **驗證與測試** 的說明）
 
 ---
 
@@ -109,25 +109,38 @@ npm test
 
 ---
 
-## 測試與驗證
+## 驗證與測試
 
-### 使用 npm start 啟動 server，並手動進行測試：
+### 【驗證】
 
-- 方式一 curl：`curl -F "file=@fixtures/sample.jpg" http://localhost:3000/coaches/avatar`
-- 方式二：Postman
-  - Method：POST
-  - URL：http://localhost:3000/coaches/avatar
-  - Body → form-data
-  - Key：file（類型選 File，不是 Text）
-  - Value：選擇一個圖片檔案
-  - 送出後預期收到：{ "filename": "...", "sizeKB": ..., "ext": "...", "savedPath": "..." }
+驗證部分提供給同學在作業進行中或撰寫完成後**自行練習**，透過實際發送 request、觀察回應結果，也能更直觀地了解 API 的運作方式。
 
-### 使用 npm test 來完整測試：
+使用前需先執行 `npm start` 啟動本地 server。
+
+**方式一：curl**
+
+透過指令 `curl -F "file=@fixtures/sample.jpg" http://localhost:3000/coaches/avatar` 來進行驗證。
+
+**方式二：Postman**
+
+- Method：`POST`、URL：`http://localhost:3000/coaches/avatar`
+- 點選 Body -> 再點擊 `form-data`
+- 表格部分 Key 名稱輸入 file，類型要選擇 File（預設為 Text）
+- Value 部分選擇一個圖片檔案（如果有出現警示符號 -> 可參考 Week2 Postman 圖片出現警示符號教學）
+- 最後按下 Postman 視窗右方的 Send 按鈕
+
+方式一、方式二執行後可看看圖片上傳功能是否正確運作，若上傳成功則會顯示回傳的檔案資訊（`{ "filename": "...", "sizeKB": ..., "ext": "...", "savedPath": "..." }`）
+
+### 【測試】
+
+**作業繳交前必須通過**，執行 `npm test` 來確認各個測試項目。
+
+測試結果條列：
 
 - ✓ 表示測試通過
 - ✕ 表示測試失敗
 
-看到 Tests: 14 passed, 14 total 即代表全數通過。
+看到 `Tests: 14 passed, 14 total` 即代表全數通過。
 
 **測試項目（共 14 項）：**
 
