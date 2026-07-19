@@ -57,8 +57,13 @@ function getUploadConfig() {
  *   getFileExtension('README');      // ''
  */
 function getFileExtension(filename) {
-  // TODO: 實作此函式
   // 提示：用 lastIndexOf('.') 找最後一個 .，toLowerCase() 轉小寫
+  const dotIdx = filename.lastIndexOf(".");
+  if (dotIdx != -1) {
+    return filename.slice(dotIdx, filename.length).toLowerCase();
+  } else {
+    return "";
+  }
 }
 
 // ========== 任務三：解析檔案 metadata ==========
