@@ -87,7 +87,15 @@ function getFileExtension(filename) {
  *   // { filename: 'leo.jpg', sizeKB: 244, ext: '.jpg' }
  */
 function parseFileMetadata(file) {
-  // TODO: 實作此函式
+  //TODO check file is null object?
+  const filename = file.originalFilename;
+  const sizeKB = Math.round(file.size / 1024);
+  const ext = getFileExtension(filename);
+  return {
+    filename,
+    sizeKB,
+    ext,
+  };
   // 提示：呼叫 getFileExtension 取副檔名，Math.round(size / 1024) 算 KB
 }
 
