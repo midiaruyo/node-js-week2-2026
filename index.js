@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require('node:http');
 const fs = require('node:fs');
 const { formidable } = require('formidable');  // formidable v3 用 named import
@@ -19,14 +20,21 @@ const { formidable } = require('formidable');  // formidable v3 用 named import
  * @returns {{uploadDir: string, maxFileSize: number, gymName: string}}
  *
  * @example
- *   process.env.UPLOAD_DIR = '/tmp/uploads';
+ *   process.env.UPLOAD_DIR = '/tmp';
  *   process.env.MAX_FILE_SIZE_MB = '10';
  *   process.env.GYM_NAME = 'FitClub';
  *   getUploadConfig();
  *   // { uploadDir: '/tmp/uploads', maxFileSize: 10485760, gymName: 'FitClub' }
  */
 function getUploadConfig() {
-  // TODO: 實作此函式
+  const uploadDir = process.env.UPLOAD_DIR || '/tmp';
+  const maxFileSize = Number(process.env.MAX_FILE_SIZE_MB || 5) * 1024 * 1024;
+  const gymName = process.env.GYM_NAME || '未命名健身房';
+  return {
+    uploadDir,
+    maxFileSize,
+    gymName,
+  };
   // 提示：用 || 給預設值；MAX_FILE_SIZE_MB 是字串，記得先 Number() 轉型再換算 bytes
 }
 
