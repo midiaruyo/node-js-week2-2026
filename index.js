@@ -24,7 +24,7 @@ const { formidable } = require('formidable');  // formidable v3 用 named import
  *   process.env.MAX_FILE_SIZE_MB = '10';
  *   process.env.GYM_NAME = 'FitClub';
  *   getUploadConfig();
- *   // { uploadDir: '/tmp/uploads', maxFileSize: 10485760, gymName: 'FitClub' }
+ *   // { uploadDir: '/tmp', maxFileSize: 10485760, gymName: 'FitClub' }
  */
 function getUploadConfig() {
   const uploadDir = process.env.UPLOAD_DIR || '/tmp';
@@ -87,14 +87,13 @@ function getFileExtension(filename) {
  *   // { filename: 'leo.jpg', sizeKB: 244, ext: '.jpg' }
  */
 function parseFileMetadata(file) {
-  //TODO check file is null object?
   const filename = file.originalFilename;
   const sizeKB = Math.round(file.size / 1024);
   const ext = getFileExtension(filename);
   return {
     filename,
     sizeKB,
-    ext,
+    ext
   };
   // 提示：呼叫 getFileExtension 取副檔名，Math.round(size / 1024) 算 KB
 }
@@ -117,10 +116,71 @@ function parseFileMetadata(file) {
  *   // '[FitClub] Uploaded leo.jpg (245 KB) → /tmp/uploads'
  */
 function formatUploadLog(meta, config) {
-  // TODO: 實作此函式
-  // 提示：用 template literal 組字串
+  return `[${config.gymName}] Uploaded ${meta.filename} (${meta.sizeKB} KB) → ${config.uploadDir}`;
+}
+/**
+ * 
+ * @param {http.IncomingMessage} req
+ * @param {http.ServerResponse} res
+ * @return {void}
+ */
+function handleNotFound(req, res) {
+  res.writeHead(404, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ error: "Not Found" }));
 }
 
+/**
+ * 
+ * @param {http.IncomingMessage} req
+ * @param {http.ServerResponse} res
+ * @param {{uploadDir: string, maxFileSize: number, gymName: string}} config
+ * @return {void}
+ */
+function handleUpload(req, res, config) {
+
+  const formObj = formidable({
+    uploadDir: config.uploadDir,
+    maxFileSize: config.maxFileSize,
+    keepExtensions: true,
+  });
+
+  //啟動 記錄 log、清理暫存檔、額外監控
+  formObj.on("error", (err) => {
+    console.log(err);
+  });
+
+  //開始解析使用者上傳的檔案
+  formObj.parse(req, (err, fields, files) => {
+    //formidable 解析錯誤（含超過 maxFileSize）→ 回 500 + JSON { error }
+    if (err) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+      return;
+    }
+
+    //沒 file 欄位 → 回 400 + JSON { error: 'No file uploaded' }
+    const file = files.file?.[0];
+    if (!file) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "No file uploaded" }));
+      return;
+    }
+
+    //成功 → 刷一筆成功訊息
+    const fileMeta = parseFileMetadata(file);
+    console.log(formatUploadLog(fileMeta, config));
+
+    //成功 → 回 200 + JSON { filename, sizeKB, ext, savedPath }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        ...fileMeta,
+        savedPath: `${file.filepath}`,
+      })
+    );
+  });
+
+}
 // ========== 任務五：路由分派 ==========
 /**
  * 吃 HTTP request / response / config，依 method + url 分派到對應處理邏輯。
@@ -147,7 +207,6 @@ function formatUploadLog(meta, config) {
  *   http.createServer((req, res) => router(req, res, config))
  */
 function router(req, res, config) {
-  // TODO: 實作此函式
   // 建議（非強制）：
   //   - 拆出 handleUpload(req, res, config)：formidable 解析邏輯
   //   - 拆出 handleNotFound(req, res)：404 邏輯
@@ -158,6 +217,11 @@ function router(req, res, config) {
   //     form.on('error', (err) => {
   //       console.log(err); // 記錄 log、清理暫存檔、額外監控可以寫在這邊
   //     });  
+  if (req.url === "/coaches/avatar" && req.method === "POST") {
+    handleUpload(req, res, config);
+  } else {
+    handleNotFound(req, res);
+  }
 }
 
 // ========== 任務六：建立上傳 server ==========
@@ -177,8 +241,9 @@ function router(req, res, config) {
  *   server.listen(3000);  // ← 這行由 app.js 呼叫
  */
 function createUploadServer(config) {
-  // TODO: 實作此函式
   // 提示：主邏輯都在 router 裡，這邊函式內容不多
+  fs.mkdirSync(config.uploadDir, { recursive: true });
+  return http.createServer((req, res) => router(req, res, config));
 }
 
 module.exports = {
